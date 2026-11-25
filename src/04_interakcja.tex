@@ -1,0 +1,83 @@
+\section{Interakcja z modelem}
+\label{sec:int}
+Reprezentacje geometryczne opisane w rozdziale \ref{sec:rep} oraz metody generowania omówione w rozdziale \ref{sec:gen} wymagają algorytmów które operują na na wygenerowanych przez nich danych. Ten rozdział opisuje praktyczne zastosowania takich algorytmów.
+
+\subsection{Marching Cubes}
+\label{sec:mar}
+Algorytm przekształca dane między reprezentacjami uwikłanymi a siatką wielokątów, a dokładnie pole skalarne, takie jak SDF w siatkę trójkątów.
+
+\paragraph{Definicja i historia}
+\textit{Marching Cubes} jest algorytmem zaproponowanym przez Williama Lorensena i Harveya Cline'a w 1987 roku. Pierwotnie opublikowany w kontekście wizualizacji trójwymiarowych danych medycznych \cite{lorensen1987}.
+
+W diagnostyce obrazy są złożone z wielu dwuwymiarowych przekrojów, które razem tworzą trójwymiarowy obiekt. Radiolodzy posiadają odpowiednie umiejętności do interpretacji przedstawionych w ten sposób danych, natomiast częstym wymogiem jest komunikacja z lekarzami, którzy nie mają w tym szkolenia. Ten problem utworzył zapotrzebowanie na czytelne modele trójwymiarowe wygenerowane z przekrojów. 
+
+Przetwarzanie danych medycznych składało się z czterech kroków: pozyskanie przekrojów, filtrowanie obrazu, konstrukcji powierzchni i wyświetlenie jej, ten algorytm adresuje trzeci krok.
+
+\paragraph{Zasada działania}
+Metoda polega na przetwarzaniu pola skalarnego przez podział na regularne sześciany, czyli kostki i dla każdej z nich wyznacza jak izopowierzchnia przecina krawędzie. Izopowierzchnia jest definiowana jako trójwymiarowa powierzchnia wyznaczona za pomocą wszystkich punktów, które mają dokładnie tę samą wartość. 
+
+Na każdy z ośmiu wierzchołków sześcianu zostaje nałożona wartość binarna: jeden jeśli wartość pola w tym punkcie $\ge$ wartości progowej, inaczej otrzymuje wartość zero. Przecięcie krawędzi przez powierzchnię występuje gdy jeden wierzchołek ma wartość jeden a drugi zero.
+
+Jako że każda kostka ma osiem wierzchołków z dwoma możliwymi stanami, istnieje $2^8 = 256$ możliwych sposobów przecięcia. Algorytm enumeruje wszystkie przypadki i przetrzymuje je w tablicy przeglądowej. Natomiast dzięki podwójnej symetrii kostki możemy zredukować 256 przypadków do 15 wzorców \cite{lorensen1987}.
+
+\begin{figure}[h!]
+    \centering
+    \includesvg[width=0.8\columnwidth]{media/MarchingCubes.svg}
+    \caption{15 wzorców Marching Cubes. Jmtrivial, GPL, via Wikimedia Commons}
+    
+\end{figure}
+
+W ostatnim kroku algorytm oblicza wektory normalne dla każdego z wierzchołków. Gradient pola $\nabla f$ jest prostopadły do izopowierzchni i jest wersorem normalnym dla SDF, co opisano w sekcji \ref{sec:sdf}.
+
+\paragraph{Warianty}
+Pierwsza optymalizacja zaproponowana w \cite{lorensen1987} wykorzystuje fakt, że sąsiednie kostki współdzielą swoje krawędzie. Przy liniowym przetwarzaniu przestrzeni wymagane jest tylko interpolowanie trzech nowych krawędzi na kostkę, pozostałe można odczytać z poprzednio obliczonych kostek. W tej metodzie występują specjalne warunki, gdzie kości znajdujące się na brzegach danych, nie mają poprzednio obliczonych wartości do wykorzystania. W praktyce przechowuje się tylko poprzedni piksel i przecięcia linii, aby zaoszczędzić na pamięci. Ten wariant przyśpiesza algorytm aż trzykrotnie.
+
+Kolejnym usprawnieniem algorytmu jest zaimplementowanie operacji boolowskich. Pozwala to na wycinanie i zamykanie modeli, jak i również ekstrakcję różnych powierzchni \cite{lorensen1987}.
+
+Algorytm \textit{Transvoxel} \cite{lengyel2010}, który został zaproponowany przez Lengyela, rozszerza \textit{Marching Cubes} o obsługę poziomów szczegółów LOD\footnote{Level Of Detail}. Rozwiązuje też problem artefaktowania na złączach między kośćmi z różnymi rozdzielczościami, co wykorzystywane jest przy generowaniu terenu z szumów.
+
+\paragraph{Zastosowania}
+Pierwsze zastosowanie w medycynie wciąż pozostaje aktualne. Rekonstrukcja trójwymiarowych modeli z danych wygenerowanych podczas tomografii komputerowej i rezonansu magnetycznego nadal opiera się na tej metodzie. W grafice komputerowej \textit{Marching Cubes} jest podstawową metodą stosowaną do ekstrakcji siatki z SDF. W kontekście generowania proceduralnego, ten algorytm jest mostem między szumem Perlina a finalną siatką.
+
+\paragraph{Zalety i wady}
+Główną zaletą algorytmu jest prosta implementacja i generalność, ponieważ działa on na dowolnym polu skalarnym, niezależnie od metody otrzymania go, czy to przez SDF, szum proceduralny lub dane diagnostyczne. Dzięki tablicy przeglądowej 256 różnych przypadków sprawia, że kostki przetwarzane są w czasie stałym $O(1)$.
+
+Najważniejszym ograniczeniem tej metody jest niejednoznaczność występująca we wzorcach bazowych, dla niektórych z nich istnieje więcej niż jedno poprawne rozwiązanie. Kolejną wadą jest stała rozdzielczość siatki, algorytm nie adaptuje się do złożoności geometrii i przetwarza płaskie obszary z taką samą dokładnością co obszary złożone.
+
+\subsection{Analiza kolizji na bazie SDF}
+\label{sec:kol}
+Detekcja kolizji rozwiązuje trzy powiązane ze sobą problemy: czy obiekty się przecinają, kiedy w trakcie ruchu wystąpiła kolizja, oraz gdzie i w jaki sposób obiekty się zetknęły \cite{ericson2004}. Reprezentacja SDF, opisana w \ref{sec:sdf} jest eleganckim rozwiązaniem pierwszego i trzeciego problemu poprzez wykorzystanie własności pól odległości.
+
+\paragraph{Definicja i historia}
+Na implementację detekcji kolizji wpływa wiele czynników. Reprezentacja geometryczna obiektów występujących w scenie determinuje możliwe do użycia algorytmy, rodzaj zapytań wpływa na koszt obliczeniowy, a właściwości symulacji takie jak liczba obiektów narzucają dodatkowe ograniczenia \cite{ericson2004}. Ważnym aspektem jest też wymóg działania w czasie rzeczywistym: w grze komputerowej drobna niedokładność będzie niezauważalna, natomiast podczas symulacji naukowej mały błąd może skompromitować całe badanie.
+
+Zastosowanie SDF do detekcji kolizji jest wynikiem ich własności matematycznych. Pole odległości ze znakiem zawiera dokładnie tą informację którą wymaga detekcja, czyli odległość od powierzchni, przynależność punktu i kierunek normalnej \cite{bridson2008}.
+
+\paragraph{Zasada działania}
+Dla obiektu opisanego przez funkcję odległości $\phi$, wartość funkcji dla punktu $\mathbf{x}$, zwraca odległość do najbliższej powierzchni ze znakiem dodatnim na zewnątrz i ujemnym wewnątrz. Aby dla punktu $\mathbf{x}$ zapytać o wystąpienie kolizji, wystarczy obliczyć $\phi(\mathbf{x})$ i sprawdzić znak wartości. 
+
+W praktyce wartości SDF są przetrzymywane na dyskretnej siatce wokseli, a zapytania o odległość punktu nie występującego na siatce są obsługiwane przez interpolację trójliniową. Otrzymany w ten sposób wynik jest przybliżeniem, ale wystarcza dla zastosowań symulacji fizycznych.
+
+Zapytania o kolizję są operacjami o złożoności $O(1)$ po dyskretyzacji na siatce wokseli. W reprezentacji SDF gradient jest wersorem, który wskazuje najbliższy punkt powierzchni. Po połączeniu tych dwóch właściwości, dla każdego punktu $\mathbf{x}$ wewnątrz obiektu, punkt $\mathbf{x} - \phi(\mathbf{x})\nabla\phi(\mathbf{x})$ jest jego rzutem na powierzchnię \cite{ericson2004}.
+
+
+\paragraph{Warianty}
+Systemy kolizji oparte na SDF są rozróżniane za pomocą statycznych a dynamicznych pól odległości. 
+
+Statyczne są obliczane raz dla obiektów nieruchomych, takich jak środowisko lub przeszkody i są przechowywane w pamięci programu podczas trwania symulacji. 
+
+Dynamiczne pola odległości dla obiektów poruszających się wymagają aktualizacji przy każdej zmianie geometrii, co oznacza złożoność $O(N^3)$ każdego odnowienia.
+
+Praktycznym rozwiązaniem tego problemu jest dwufazowy system detekcji. Faza szeroka używa uproszczonych brył otaczających do szybkiego eliminowania par obiektów między którymi nie może wystąpić kolizja \cite{ericson2004}. Faza wąska stosuje SDF tylko dla par które przeszły pierwszy etap, dzięki czemu redukuje się liczbę zapytań do minimum.
+
+\paragraph{Zastosowania}
+W grach komputerowych detekcja kolizji sprawia, że obiekty nie przenikają przez świat, gracz nie może przejść przez ściany, a fizyka z jaką zachowują się obiekty jest intuicyjna \cite{ericson2004}. SDF jest wykorzystywany szczególnie podczas obliczania kolizji postaci z otoczeniem, gdzie teren jest statyczny i wystarczy go obliczyć jeden raz.
+
+W symulacjach fizycznych SDF jest standardem obsługiwania kolizji dla obliczanych cieczy oraz tkanin. Otoczenie jest opisane polem odległości, dzięki czemu cząsteczki cieczy mogą odpytywać je w każdym kroku symulacji \cite{bridson2008}.
+
+W robotyce planowanie ścieżek wymusza ciągłe zapytania o odległość do przeszkody. SDF pozwala na obliczanie odległości między robotem a otoczeniem w czasie stałym.
+
+\paragraph{Zalety i wady}
+Najważniejszą zaletą zastosowania SDF w detekcji kolizji jest wydajność zapytań $O(1)$, co zezwala na natychmiastowy dostęp do odległości i normalnej w dowolnym punkcie. Kierunek odpychania jest dostępny bezpośrednio wykorzystując wartości gradientu funkcji, bez potrzeby dodatkowych obliczeń.
+
+Niestety główną wadą jest koszt aktualizacji gdy występują obiekty dynamiczne, przeliczanie pola odległości jest złożoności $O(N^3)$. Niewydajność takich obliczeń wyklucza metodę z zastosowań, gdzie wiele obiektów zmienia pozycję jednocześnie. Ograniczeniem jest też zużycie pamięci, siatka wokseli używana do przechowywania danych jest złożoności $O(N^3)$, opisana w sekcji \ref{sec:sdf}. Rozległość zużytej pamięci przy wysokiej rozdzielczości jest prohibicyjna, natomiast istnieją struktury adaptacyjne, takie jak drzewa ósemkowe, które częściowo łagodzą ten problem.

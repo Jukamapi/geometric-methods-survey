@@ -1,0 +1,90 @@
+\documentclass[12pt, a4paper, twocolumn]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{csquotes}
+
+% margines
+\usepackage[left=1.6cm, right=1.6cm, top=2cm, bottom=2.5cm, columnsep=0.8cm]{geometry}
+
+% czcionka
+\usepackage{newtxtext, newtxmath}
+\usepackage{microtype}
+
+% grafiki
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{svg}
+\usepackage{float}
+
+% misc
+\raggedbottom
+\linespread{1.05}
+
+% nagłówki
+\usepackage{titlesec}
+\titleformat{\section}{\fontsize{14}{16}\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\fontsize{12}{14}\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing*{\section}   {0pt}{3ex plus 1ex minus .2ex}{1.5ex}
+\titlespacing*{\subsection}{0pt}{2ex plus 1ex minus .2ex}{1.2ex}
+
+% linki
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+
+% bibliografia
+\usepackage[
+  backend=biber,
+  style=numeric,
+  sorting=none
+]{biblatex}
+\addbibresource{bibliografia.bib}
+
+\begin{document}
+
+\twocolumn[{%
+  % nagłówek
+  \noindent{\small Politechnika Warszawska - Wydział Elektryczny \hfill Projekt Indywidualny 2026}
+  \vspace{0.6cm}
+
+  \begin{center}
+    % tytuł
+    {\LARGE\bfseries Analiza metod geometrycznych wspomagania modelowania 3D\\[0.6cm]}
+
+    {\large Kajetan Wójcik$^1$ \quad prof.\ dr.\ hab.\ inż.\ Dariusz Sawicki$^2$\\[0.4cm]}
+
+    {\small
+      $^1$Informatyka Stosowana, sem. 4, 333590\quad
+      $^2$Prowadzący projekt, IETiSIP
+    }
+  \end{center}
+  \vspace{0.7cm}
+
+  % linia1
+  \noindent\rule{\textwidth}{0.4pt}
+  \vspace{0.3cm}
+
+  % strzeszczenie
+  \noindent\textbf{Streszczenie}\\[0.2cm]
+  \noindent\textit{Praca przedstawia przegląd metod geometrycznych stosowanych w modelowaniu i wizualizacji trójwymiarowej. Omówiono trzy główne podejścia do reprezentacji geometrii: siatki wielokątów (mesh), powierzchnie parametryczne (NURBS) oraz funkcje odległości ze znakiem (SDF). Następnie przeanalizowano algorytmy proceduralnego generowania i modyfikowania geometrii, w tym szumy i powierzchnie subdywizyjne. Ostatnia część poświęcona jest metodom interakcji z powierzchnią, ze szczególnym uwzględnieniem algorytmu \textit{Marching Cubes} oraz analizy kolizji.}
+  \vspace{0.3cm}
+
+  \noindent\textbf{Słowa kluczowe:} modelowanie geometryczne, reprezentacja geometrii, generowanie proceduralne, grafika komputerowa 3D
+  \vspace{0.3cm}
+
+  % linia2
+  \noindent\rule{\textwidth}{0.4pt}
+  \vspace{0.8cm}
+}]
+
+\input{01_wstep}
+
+\input{02_reprezentacje}
+
+\input{03_generowanie}
+
+\input{04_interakcja}
+
+\printbibliography[title={Bibliografia}]
+
+\end{document}
