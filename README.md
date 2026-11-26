@@ -1,11 +1,19 @@
 # Analiza metod geometrycznych wspomagania modelowania 3D
 *(Geometric Methods in 3D Modeling)*
 
-Individual academic project (*Projekt Indywidualny*) written at the Faculty of Electrical Engineering, Warsaw University of Technology (Politechnika Warszawska), 2026.
+A technical survey on mathematical representations, procedural generation, and spatial algorithms in 3D computer graphics, Warsaw University of Technology, 2026.
 
 **Note:** The paper is written in **Polish**. 
 
 The compiled document is available directly in this repository: **[paper.pdf](paper.pdf)**.
+
+<p align="center">
+  <a href="paper.pdf">
+    <img src="preview.png" alt="Paper Preview" width="480" />
+  </a>
+  <br>
+  <em>(Click the preview to open the full PDF)</em>
+</p>
 
 ---
 
@@ -20,14 +28,4 @@ A literature review on 3D geometry representations, procedural generation method
 
 ---
 
-## Building from source
-
-The LaTeX source code and figures are in the `src/` directory.
-
-To compile:
-```bash
-cd src
-pdflatex main.tex
-bibtex main
-pdflatex main.tex
-pdflatex main.tex
+*The complete LaTeX source and figures are located in the [`src/`](src/) folder.*
